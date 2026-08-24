@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grounded Intent Guard — State-Grounded Shell Safety Layer</title>
+  <meta name="description" content="A deterministic, zero-ML pre-execution safety layer for shell commands that grounds risk in live filesystem, git porcelain, and trajectory drift.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navigation Bar — Guaranteed Single Line -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <div class="brand-icon">
+          <!-- Custom Shield + Terminal Vector Logo -->
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="8 10 11 13 8 16"/>
+            <line x1="13" y1="16" x2="16" y2="16"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Grounded Intent Guard</span>
+          <span class="brand-tag">v1.0 Zero-ML</span>
+        </div>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#demo-sandbox" class="nav-link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          Terminal Demo
+        </a>
+        <a href="#state-grounding" class="nav-link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Why Grounding?
+        </a>
+        <a href="#architecture" class="nav-link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Architecture
+        </a>
+        <a href="docs.html" class="nav-link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Docs & Runbook
+        </a>
+        <a href="#comparison" class="nav-link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Vs Regex/LLM
+        </a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="#demo-sandbox" class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Try Live Demo
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section" id="hero">
+    <div class="container hero-container">
+      <div class="hero-badge">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Deterministic Pre-Execution Shell Safety</span>
+      </div>
+
+      <h1 class="hero-title">
+        The Zero-ML Safety Layer <span class="text-blue">Grounded in Live System State</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Most shell safety tools judge the command <em>string</em>. <strong>Grounded Intent Guard</strong> inspects what the command will <em>actually destroy right now</em> — real disk bytes, git working tree status, open process locks, and trajectory drift.
+      </p>
+
+      <!-- Key Metrics Row -->
+      <div class="metrics-strip">
+        <div class="metric-card">
+          <div class="metric-value text-emerald">0.0 ms</div>
+          <div class="metric-label">ML & Network Latency</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value text-blue">100% Local</div>
+          <div class="metric-label">Deterministic & Air-Gapped</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value text-purple">4-Tier</div>
+          <div class="metric-label">Allow → Warn → Confirm → Block</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value text-orange">35 / 35</div>
+          <div class="metric-label">Pytest Unit Tests Passing</div>
+        </div>
+      </div>
+
+      <div class="hero-ctas">
+        <a href="#demo-sandbox" class="btn btn-primary btn-lg">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Open Live Terminal Demo
+        </a>
+        <a href="docs.html" class="btn btn-secondary btn-lg">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          View Verification Docs
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Terminal Demo & Real-Time Engine Sandbox Section -->
+  <section class="demo-section" id="demo-sandbox">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Interactive Sandbox
+        </div>
+        <h2 class="section-title">Live Terminal & Engine Telemetry</h2>
+        <p class="section-desc">
+          Click any preset scenario or type custom commands below. Watch how the risk engine inspects system state in real time and computes continuous friction.
+        </p>
+      </div>
+
+      <!-- Quick Scenario Switcher Bar -->
+      <div class="scenario-bar">
+        <span class="scenario-label">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Presets:
+        </span>
+        <button class="scenario-btn active" data-cmd="git reset --hard HEAD~1" data-vfs="dirty-git">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 9a9 9 0 0 0 9 9"/></svg>
+          git reset --hard (Dirty Repo)
+        </button>
+        <button class="scenario-btn" data-cmd="dd if=/dev/zero of=/dev/sda" data-vfs="blockdev">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          dd of=/dev/sda (Raw Disk)
+        </button>
+        <button class="scenario-btn" data-cmd="rm -rf ./build" data-vfs="large-build">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          rm -rf ./build (3,200 files)
+        </button>
+        <button class="scenario-btn" data-cmd="rm -rf ./nonexistent" data-vfs="empty-dir">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          rm -rf nonexistent (0 bytes)
+        </button>
+        <button class="scenario-btn" data-cmd="chmod -R 777 /etc" data-vfs="system-dir">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          chmod -R 777 /etc
+        </button>
+        <button class="scenario-btn" data-cmd="drift-burst" data-vfs="drift-test">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Trajectory Drift Attack
+        </button>
+      </div>
+
+      <!-- Main Interactive Sandbox Grid -->
+      <div class="sandbox-grid">
+        
+        <!-- Left: Interactive Jet-Black Terminal Emulator -->
+        <div class="terminal-panel">
+          <div class="panel-header terminal-header">
+            <div class="window-controls">
+              <span class="control-dot"></span>
+              <span class="control-dot"></span>
+              <span class="control-dot"></span>
+            </div>
+            <div class="terminal-title">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+              bash — Grounded Intent Guard Active
+            </div>
+            <div class="vfs-status" id="vfs-status-pill">
+              <span class="vfs-dot"></span>
+              <span id="vfs-label">VFS: Dirty Git Repo</span>
+            </div>
+          </div>
+
+          <div class="terminal-body" id="terminal-screen">
+            <div class="terminal-line banner">
+              Grounded Intent Guard v1.0 — Interception Active.
+            </div>
+            <div class="terminal-line muted">
+              Type commands like <span class="cmd-pill">rm -rf ./build</span> or <span class="cmd-pill">git reset --hard</span>, or select a preset above.
+            </div>
+            <div class="terminal-history" id="terminal-history"></div>
+            
+            <!-- Active Prompt Row -->
+            <div class="terminal-prompt-row" id="terminal-prompt-row">
+              <span class="prompt-user">dev@grounded-host</span>:<span class="prompt-path" id="terminal-cwd">~/project</span><span class="prompt-symbol">$</span>
+              <div class="input-wrapper">
+                <input type="text" id="terminal-input" class="terminal-input" placeholder="Type a command and press Enter..." autocomplete="off" spellcheck="false">
+              </div>
+            </div>
+          </div>
+
+          <div class="terminal-footer">
+            <div class="keyboard-hints">
+              <span><kbd>Enter</kbd> Run</span>
+              <span><kbd>y</kbd>/<kbd>n</kbd> Answer Prompt</span>
+              <span><kbd>Ctrl+L</kbd> Clear</span>
+            </div>
+            <button class="btn btn-xs btn-outline" id="btn-clear-term">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+              Clear Screen
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Real-time Telemetry & Risk Vector Inspector -->
+        <div class="telemetry-panel">
+          <div class="panel-header">
+            <div class="telemetry-header-title">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Live Grounded Telemetry
+            </div>
+            <div class="tier-badge" id="action-tier-badge">ALLOW</div>
+          </div>
+
+          <div class="telemetry-body">
+            
+            <!-- Risk Meter Gauge -->
+            <div class="gauge-card">
+              <div class="gauge-header">
+                <span class="gauge-title">Composite Risk Score</span>
+                <span class="gauge-score" id="risk-score-value">0.15 / 1.00</span>
+              </div>
+              <div class="risk-bar-track">
+                <div class="risk-bar-fill" id="risk-bar-fill" style="width: 15%;"></div>
+                <div class="threshold-marker" style="left: 30%;" title="WARN: 0.30">
+                  <span class="th-label">WARN 0.30</span>
+                </div>
+                <div class="threshold-marker" style="left: 55%;" title="CONFIRM: 0.55">
+                  <span class="th-label">CONFIRM 0.55</span>
+                </div>
+                <div class="threshold-marker" style="left: 80%;" title="BLOCK: 0.80">
+                  <span class="th-label">BLOCK 0.80</span>
+                </div>
+              </div>
+              <div class="formula-breakdown" id="formula-breakdown">
+                Score = (0.45 × <span id="f-impact">0.00</span>) + (0.25 × <span id="f-drift">0.00</span>) + (0.30 × <span id="f-irrev">0.50</span>) = <strong id="f-total">0.15</strong>
+              </div>
+            </div>
+
+            <!-- Vector Signals Grid -->
+            <div class="vector-signals-grid">
+              
+              <!-- Category Card -->
+              <div class="signal-card">
+                <div class="signal-label">1. Command Category</div>
+                <div class="signal-main text-blue" id="vec-category">DELETE</div>
+                <div class="signal-sub" id="vec-target-path">Target: <code>./important-project/</code></div>
+              </div>
+
+              <!-- Physical Impact Card -->
+              <div class="signal-card">
+                <div class="signal-label">2. Grounded File Impact</div>
+                <div class="signal-main text-purple" id="vec-file-count">0 files</div>
+                <div class="signal-sub" id="vec-total-bytes">Total Size: 0.0 MB</div>
+              </div>
+
+              <!-- Git Porcelain State Card -->
+              <div class="signal-card">
+                <div class="signal-label">3. Git Working Tree State</div>
+                <div class="signal-main" id="vec-git-status">Clean / Unaffected</div>
+                <div class="signal-sub" id="vec-git-details">Uncommitted: False • Unpushed: False</div>
+              </div>
+
+              <!-- Trajectory Drift Card -->
+              <div class="signal-card">
+                <div class="signal-label">4. Trajectory Drift (Window: 12)</div>
+                <div class="signal-main text-cyan" id="vec-drift-score">0.00 (Coherent)</div>
+                <div class="signal-sub">Session history window</div>
+              </div>
+
+            </div>
+
+            <!-- Rolling Drift Window Section -->
+            <div class="drift-window-section">
+              <div class="drift-window-header">
+                <span>Recent Command Category History:</span>
+                <span class="drift-stat" id="drift-coherence-stat">Coherence: 100%</span>
+              </div>
+              <div class="drift-tokens" id="drift-tokens-container">
+                <span class="drift-token active">DELETE</span>
+              </div>
+            </div>
+
+            <!-- Live Explanation Output -->
+            <div class="explanation-box" id="explanation-box">
+              <div class="exp-title">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                Assessment & Recommendations:
+              </div>
+              <div class="exp-content" id="exp-text">
+                Target has 0 files on disk. No data-loss risk detected. Command allowed to proceed silently.
+              </div>
+              <div class="exp-suggestion" id="exp-suggestion">
+                <strong>Suggested Alternative:</strong> None needed.
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Pillar: Why State Grounding Matters -->
+  <section class="features-section" id="state-grounding">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Core Principle
+        </div>
+        <h2 class="section-title">The Flaw in String-Based Shell Safety</h2>
+        <p class="section-desc">
+          Every other shell safety system looks at words. Grounded Intent Guard looks at physics on disk.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 9a9 9 0 0 0 9 9"/></svg>
+          </div>
+          <h3>1. Grounded Git Loss Detection</h3>
+          <p>
+            <code>git reset --hard</code> takes <strong>no path arguments</strong>. A string matcher thinks it's a standard reset. Grounded Intent Guard queries <code>git status --porcelain</code> live, counting staged & unstaged dirty files that would be permanently destroyed.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          </div>
+          <h3>2. Raw Block Device Awareness</h3>
+          <p>
+            <code>stat()</code> on <code>/dev/sda</code> reports ~0 bytes because it's a special device node. Grounded Intent Guard calls <code>blockdev --getsize64</code> to recognize a multi-gigabyte raw disk overwrite and triggers an immediate <strong>BLOCK</strong>.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>3. Rolling Trajectory Drift</h3>
+          <p>
+            A sudden destructive command after 20 harmless dev commands represents human distraction or script anomaly. Drift is computed as <code>1.0 − (matches / window_size)</code> without any ML training or embedding overhead.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+          </div>
+          <h3>4. Multi-Factor Recoverability</h3>
+          <p>
+            Is the repo pushed to upstream remote? Is <code>trash-put</code> installed as an undo bin? Are filesystem snapshots active? Irreversibility directly scales the friction tier so harmless actions aren't needlessly blocked.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Visual Pipeline & Deep Diagram -->
+  <section class="arch-section" id="architecture">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Deep System Architecture
+        </div>
+        <h2 class="section-title">Deterministic Pre-Execution Pipeline</h2>
+        <p class="section-desc">
+          High-level overview and deep granular dataflow of the zero-latency, state-grounded safety kernel.
+        </p>
+      </div>
+
+      <!-- Deep Architecture Diagram Card with High-Res Exporter -->
+      <div class="arch-diagram-card">
+        <div class="arch-toolbar">
+          <div class="arch-toolbar-title">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>Architecture & Dataflow Specification (v1.0 Local Core)</span>
+          </div>
+          <div class="arch-toolbar-actions">
+            <button class="btn btn-secondary btn-sm" id="btn-download-svg" onclick="downloadDiagramSVG()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download SVG (Vector, ~25 KB)
+            </button>
+            <button class="btn btn-primary btn-sm" id="btn-download-png" onclick="downloadDiagramPNG()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Download High-Res Image (PNG, &lt; 200 KB)
+            </button>
+          </div>
+        </div>
+
+        <div class="arch-svg-container">
+          <svg id="architecture-diagram-svg" class="arch-svg" width="100%" height="auto" viewBox="0 0 1100 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bgGrad" x1="0" y1="0" x2="1100" y2="620" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#ffffff"/>
+                <stop offset="1" stop-color="#f8fafc"/>
+              </linearGradient>
+              <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.06"/>
+              </filter>
+            </defs>
+
+            <!-- Background Canvas -->
+            <rect width="1100" height="620" rx="12" fill="url(#bgGrad)"/>
+            <rect width="1100" height="620" rx="12" stroke="#e2e8f0" stroke-width="1.5"/>
+
+            <!-- Connecting Flow Paths (Precise Alignment) -->
+            <!-- Ingress -> Classifier -->
+            <path d="M 240 285 L 290 285" stroke="#64748b" stroke-width="2" stroke-dasharray="4 4"/>
+
+            <!-- Classifier -> 5 Sensors (Branching) -->
+            <path d="M 510 285 L 535 285 L 535 95 L 560 95" stroke="#2563eb" stroke-width="2"/>
+            <path d="M 535 285 L 535 190 L 560 190" stroke="#2563eb" stroke-width="2"/>
+            <path d="M 535 285 L 560 285" stroke="#2563eb" stroke-width="2"/>
+            <path d="M 535 285 L 535 380 L 560 380" stroke="#2563eb" stroke-width="2"/>
+            <path d="M 535 285 L 535 475 L 560 475" stroke="#2563eb" stroke-width="2"/>
+
+            <!-- 5 Sensors -> Kernel (Convergence) -->
+            <path d="M 770 95 L 795 95 L 795 270 L 820 270" stroke="#7c3aed" stroke-width="2"/>
+            <path d="M 770 190 L 795 190 L 795 280 L 820 280" stroke="#7c3aed" stroke-width="2"/>
+            <path d="M 770 285 L 820 285" stroke="#7c3aed" stroke-width="2"/>
+            <path d="M 770 380 L 795 380 L 795 295 L 820 295" stroke="#7c3aed" stroke-width="2"/>
+            <path d="M 770 475 L 795 475 L 795 305 L 820 305" stroke="#7c3aed" stroke-width="2"/>
+
+            <!-- Kernel -> 4 Tiers (Dispatch) -->
+            <path d="M 940 240 L 960 240 L 960 100 L 980 100" stroke="#10b981" stroke-width="2"/>
+            <path d="M 940 270 L 960 270 L 960 205 L 980 205" stroke="#f59e0b" stroke-width="2"/>
+            <path d="M 940 300 L 960 300 L 960 310 L 980 310" stroke="#f97316" stroke-width="2"/>
+            <path d="M 940 330 L 960 330 L 960 415 L 980 415" stroke="#ef4444" stroke-width="2"/>
+
+            <!-- LAYER 1: INGRESS & INTERCEPTION (Column 1) -->
+            <g id="layer-ingress" transform="translate(35, 60)">
+              <rect width="205" height="450" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow)"/>
+              <rect width="205" height="32" rx="8" fill="#0f172a"/>
+              <text x="12" y="21" fill="#38bdf8" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="10.5">1. SHELL INTERCEPT</text>
+              
+              <text x="14" y="60" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="13">Interactive Terminal</text>
+              <text x="14" y="78" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="10">CLI: bash, zsh</text>
+
+              <rect x="12" y="95" width="181" height="90" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+              <text x="20" y="115" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">Protected Executables</text>
+              <text x="20" y="135" fill="#2563eb" font-family="JetBrains Mono, monospace" font-weight="600" font-size="10">rm • mv • dd</text>
+              <text x="20" y="153" fill="#2563eb" font-family="JetBrains Mono, monospace" font-weight="600" font-size="10">chmod • chown</text>
+              <text x="20" y="171" fill="#7c3aed" font-family="JetBrains Mono, monospace" font-weight="600" font-size="10">git (destructive)</text>
+
+              <rect x="12" y="200" width="181" height="95" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+              <text x="20" y="220" fill="#2563eb" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">guard.sh Integration</text>
+              <text x="20" y="238" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Shell function overrides</text>
+              <text x="20" y="254" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Non-destructive DEBUG trap</text>
+              <text x="20" y="270" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Single-log deduplication</text>
+
+              <rect x="12" y="310" width="181" height="120" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+              <text x="20" y="330" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">Trajectory Session</text>
+              <text x="20" y="348" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">/tmp/guard_session.json</text>
+              <text x="20" y="370" fill="#047857" font-family="JetBrains Mono, monospace" font-size="9">{"window": [</text>
+              <text x="28" y="386" fill="#0284c7" font-family="JetBrains Mono, monospace" font-size="8.5">"OTHER", "OTHER",</text>
+              <text x="28" y="400" fill="#b91c1c" font-family="JetBrains Mono, monospace" font-size="8.5">"DELETE", "GIT_OTHER"</text>
+              <text x="20" y="416" fill="#047857" font-family="JetBrains Mono, monospace" font-size="9">]}</text>
+            </g>
+
+            <!-- LAYER 2: CATEGORY CLASSIFIER & ARGV PARSER (Column 2) -->
+            <g id="layer-classify" transform="translate(290, 60)">
+              <rect width="220" height="450" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow)"/>
+              <rect width="220" height="32" rx="8" fill="#1e293b"/>
+              <text x="12" y="21" fill="#a7f3d0" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="10.5">2. CATEGORY CLASSIFIER</text>
+              
+              <text x="14" y="60" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="13">classify_command(argv)</text>
+              <text x="14" y="78" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="10">Deterministic token parser (0.0ms)</text>
+
+              <rect x="12" y="95" width="196" height="155" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+              <text x="20" y="116" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">Tokenized Categories</text>
+              
+              <g transform="translate(18, 126)">
+                <rect x="0" y="0" width="56" height="20" rx="4" fill="#fee2e2"/><text x="6" y="14" fill="#b91c1c" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">DELETE</text>
+                <rect x="62" y="0" width="72" height="20" rx="4" fill="#ffedd5"/><text x="68" y="14" fill="#c2410c" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">OVERWRITE</text>
+                <rect x="140" y="0" width="44" height="20" rx="4" fill="#f3e8ff"/><text x="146" y="14" fill="#7e22ce" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">GIT_D</text>
+                
+                <rect x="0" y="26" width="76" height="20" rx="4" fill="#e0f2fe"/><text x="6" y="40" fill="#0369a1" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">PERMISSION</text>
+                <rect x="82" y="26" width="46" height="20" rx="4" fill="#f1f5f9"/><text x="88" y="40" fill="#475569" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">MOVE</text>
+                <rect x="134" y="26" width="50" height="20" rx="4" fill="#ecfdf5"/><text x="140" y="40" fill="#047857" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">OTHER</text>
+              </g>
+
+              <text x="20" y="196" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Matches subcommands &amp; flags</text>
+              <text x="20" y="212" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Distinguishes soft vs hard reset</text>
+              <text x="20" y="228" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Detects force flags (-f, --force)</text>
+
+              <rect x="12" y="265" width="196" height="165" rx="6" fill="#f0f9ff" stroke="#bae6fd"/>
+              <text x="20" y="286" fill="#0369a1" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">Target Path Extraction</text>
+              <text x="20" y="306" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Extracts of= from dd commands</text>
+              <text x="20" y="324" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Strips CLI flags (-rf, --recursive)</text>
+              <text x="20" y="342" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Resolves relative paths vs CWD</text>
+              <text x="20" y="360" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Identifies cross-mount boundaries</text>
+              
+              <rect x="18" y="375" width="184" height="42" rx="4" fill="#ffffff" stroke="#93c5fd"/>
+              <text x="26" y="392" fill="#0f172a" font-family="JetBrains Mono, monospace" font-size="9">Target: ./build/</text>
+              <text x="26" y="407" fill="#0284c7" font-family="JetBrains Mono, monospace" font-size="8.5">Grounding paths dispatched →</text>
+            </g>
+
+            <!-- LAYER 3: 5 STATE-GROUNDED SENSORS (Column 3) -->
+            <!-- Sensor 1: VFS File Scanner -->
+            <g id="sensor-vfs" transform="translate(560, 60)">
+              <rect width="210" height="70" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" filter="url(#cardShadow)"/>
+              <text x="10" y="18" fill="#2563eb" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">A. VFS Physical Impact</text>
+              <text x="10" y="34" fill="#0f172a" font-family="JetBrains Mono, monospace" font-weight="600" font-size="9.5">os.walk() • stat()</text>
+              <text x="10" y="49" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5">Scans real file_count &amp; total_bytes</text>
+              <text x="10" y="62" fill="#047857" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="8.5">✓ Eliminates ghost file warnings</text>
+            </g>
+
+            <!-- Sensor 2: Git Working Tree -->
+            <g id="sensor-git" transform="translate(560, 155)">
+              <rect width="210" height="70" rx="6" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" filter="url(#cardShadow)"/>
+              <text x="10" y="18" fill="#7c3aed" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">B. Git Porcelain State</text>
+              <text x="10" y="34" fill="#0f172a" font-family="JetBrains Mono, monospace" font-weight="600" font-size="9.5">git status --porcelain</text>
+              <text x="10" y="49" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5">Counts dirty staged/unstaged changes</text>
+              <text x="10" y="62" fill="#7c3aed" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="8.5">★ Grounds `git reset --hard` loss</text>
+            </g>
+
+            <!-- Sensor 3: Raw Block Device -->
+            <g id="sensor-blockdev" transform="translate(560, 250)">
+              <rect width="210" height="70" rx="6" fill="#ffffff" stroke="#ea580c" stroke-width="1.5" filter="url(#cardShadow)"/>
+              <text x="10" y="18" fill="#ea580c" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">C. Raw Block Devices</text>
+              <text x="10" y="34" fill="#0f172a" font-family="JetBrains Mono, monospace" font-weight="600" font-size="9.5">blockdev --getsize64</text>
+              <text x="10" y="49" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5">Detects raw disk node overrides</text>
+              <text x="10" y="62" fill="#b91c1c" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="8.5">⚠ Overwrite override: risk = 0.95</text>
+            </g>
+
+            <!-- Sensor 4: Trajectory Drift -->
+            <g id="sensor-drift" transform="translate(560, 345)">
+              <rect width="210" height="70" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#cardShadow)"/>
+              <text x="10" y="18" fill="#0284c7" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">D. Trajectory Drift Engine</text>
+              <text x="10" y="34" fill="#0f172a" font-family="JetBrains Mono, monospace" font-weight="600" font-size="9.5">Window Size: 12 commands</text>
+              <text x="10" y="49" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5">Drift = 1.0 − (matches / len(window))</text>
+              <text x="10" y="62" fill="#0284c7" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="8.5">Zero-ML session telemetry</text>
+            </g>
+
+            <!-- Sensor 5: Recoverability Factors -->
+            <g id="sensor-recov" transform="translate(560, 440)">
+              <rect width="210" height="70" rx="6" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" filter="url(#cardShadow)"/>
+              <text x="10" y="18" fill="#16a34a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">E. Recoverability Factors</text>
+              <text x="10" y="34" fill="#0f172a" font-family="JetBrains Mono, monospace" font-weight="600" font-size="9.5">Remotes • Trash • Snapshots</text>
+              <text x="10" y="49" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5">Checks upstream push &amp; restore tools</text>
+              <text x="10" y="62" fill="#16a34a" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="8.5">Scales friction proportionally</text>
+            </g>
+
+            <!-- LAYER 4: COMPOSITE RISK MATHEMATICAL KERNEL (Column 4 Left) -->
+            <g id="layer-kernel" transform="translate(820, 200)">
+              <rect width="120" height="170" rx="8" fill="#0f172a" stroke="#334155" stroke-width="2" filter="url(#cardShadow)"/>
+              <text x="10" y="22" fill="#38bdf8" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="10.5">RISK KERNEL</text>
+              <text x="10" y="38" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="8.5">Continuous Math</text>
+
+              <rect x="7" y="48" width="106" height="64" rx="4" fill="#1e293b"/>
+              <text x="12" y="63" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="8.5">Score =</text>
+              <text x="12" y="77" fill="#93c5fd" font-family="JetBrains Mono, monospace" font-size="7.5">0.45·Impact +</text>
+              <text x="12" y="89" fill="#c4b5fd" font-family="JetBrains Mono, monospace" font-size="7.5">0.25·Drift +</text>
+              <text x="12" y="101" fill="#86efac" font-family="JetBrains Mono, monospace" font-size="7.5">0.30·(1-Recov)</text>
+
+              <rect x="7" y="120" width="106" height="40" rx="4" fill="#3b0764" stroke="#a855f7" stroke-width="1"/>
+              <text x="12" y="134" fill="#e9d5ff" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="7.5">LATENCY</text>
+              <text x="12" y="150" fill="#38bdf8" font-family="JetBrains Mono, monospace" font-weight="700" font-size="11">&lt; 2.0 ms</text>
+            </g>
+
+            <!-- LAYER 5: 4-TIER ACTION DISPATCH (Column 4 Right) -->
+            <!-- 1. ALLOW -->
+            <g transform="translate(980, 75)">
+              <rect width="85" height="52" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+              <text x="16" y="22" fill="#047857" font-family="JetBrains Mono, monospace" font-weight="800" font-size="11">ALLOW</text>
+              <text x="12" y="38" fill="#065f46" font-family="Plus Jakarta Sans, sans-serif" font-size="8">&lt; 0.30 (Silent)</text>
+            </g>
+
+            <!-- 2. WARN -->
+            <g transform="translate(980, 180)">
+              <rect width="85" height="52" rx="6" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="20" y="22" fill="#b45309" font-family="JetBrains Mono, monospace" font-weight="800" font-size="11">WARN</text>
+              <text x="12" y="38" fill="#92400e" font-family="Plus Jakarta Sans, sans-serif" font-size="8">0.30 - 0.54</text>
+            </g>
+
+            <!-- 3. CONFIRM -->
+            <g transform="translate(980, 285)">
+              <rect width="85" height="52" rx="6" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+              <text x="10" y="22" fill="#c2410c" font-family="JetBrains Mono, monospace" font-weight="800" font-size="10">CONFIRM</text>
+              <text x="8" y="38" fill="#9a3412" font-family="Plus Jakarta Sans, sans-serif" font-size="8">0.55-0.79 [y/N]</text>
+            </g>
+
+            <!-- 4. BLOCK -->
+            <g transform="translate(980, 390)">
+              <rect width="85" height="52" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+              <text x="18" y="22" fill="#b91c1c" font-family="JetBrains Mono, monospace" font-weight="800" font-size="11">BLOCK</text>
+              <text x="10" y="38" fill="#991b1b" font-family="Plus Jakarta Sans, sans-serif" font-size="8">≥ 0.80 (Exit 1)</text>
+            </g>
+
+            <!-- Bottom Invariant Summary Bar -->
+            <g transform="translate(35, 530)">
+              <rect width="1030" height="65" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+              <text x="14" y="22" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">Architectural Invariants &amp; Guarantees</text>
+              <text x="14" y="40" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• 100% Deterministic &amp; Zero ML: No LLM calls, embeddings, or network hops.</text>
+              <text x="14" y="54" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• State Grounding: Risk is derived from physical disk bytes, git dirty status, and blockdev nodes.</text>
+            </g>
+
+          </svg>
+        </div>
+
+        <div class="diagram-legend">
+          <div class="legend-item">
+            <span class="legend-chip blue"></span>
+            <span>Ingress & Wrapper</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-chip purple"></span>
+            <span>Category Tokenizer</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-chip emerald"></span>
+            <span>Live State Sensors</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-chip orange"></span>
+            <span>Composite Kernel</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-chip red"></span>
+            <span>Friction Tier Gates</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Table: Grounded vs Traditional vs LLM -->
+  <section class="comparison-section" id="comparison">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Comparison
+        </div>
+        <h2 class="section-title">Why Deterministic Grounding Wins</h2>
+        <p class="section-desc">
+          Comparing Grounded Intent Guard to regex pattern matchers and cloud LLM interceptors.
+        </p>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Evaluation Criteria</th>
+              <th class="highlight">Grounded Intent Guard</th>
+              <th>Regex / Static ShellCheck</th>
+              <th>LLM Copilot Checkers</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Execution Latency</strong></td>
+              <td class="highlight"><span class="badge-good">&lt; 2 ms (Instant)</span></td>
+              <td>&lt; 1 ms</td>
+              <td><span class="badge-bad">600 – 1500 ms</span></td>
+            </tr>
+            <tr>
+              <td><strong>`git reset --hard` on uncommitted work</strong></td>
+              <td class="highlight"><span class="badge-good">Catches via porcelain status</span></td>
+              <td><span class="badge-bad">Misses (looks like normal git)</span></td>
+              <td><span class="badge-bad">Hallucinates without local repo context</span></td>
+            </tr>
+            <tr>
+              <td><strong>`dd of=/dev/sda` Raw Block Device</strong></td>
+              <td class="highlight"><span class="badge-good">Detects real capacity & blocks</span></td>
+              <td><span class="badge-bad">Sees 0 bytes on device stat</span></td>
+              <td><span class="badge-bad">Inconsistent judgment</span></td>
+            </tr>
+            <tr>
+              <td><strong>Nonexistent Target (`rm -rf ./ghost`)</strong></td>
+              <td class="highlight"><span class="badge-good">ALLOWs silently (0 byte impact)</span></td>
+              <td><span class="badge-bad">Spams useless false positive</span></td>
+              <td><span class="badge-bad">Spams warning</span></td>
+            </tr>
+            <tr>
+              <td><strong>Air-Gapped & Offline Security</strong></td>
+              <td class="highlight"><span class="badge-good">100% Local (0 API calls)</span></td>
+              <td>100% Local</td>
+              <td><span class="badge-bad">Requires cloud API & leaks shell history</span></td>
+            </tr>
+            <tr>
+              <td><strong>Trajectory Context</strong></td>
+              <td class="highlight"><span class="badge-good">Rolling session window drift</span></td>
+              <td>None</td>
+              <td>High token cost</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Tunables & Formula Simulator -->
+  <section class="tunables-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Calibration Lab
+        </div>
+        <h2 class="section-title">Calibrate Weights & Thresholds</h2>
+        <p class="section-desc">
+          Adjust the constants in real time to simulate how your security posture responds to different threat models.
+        </p>
+      </div>
+
+      <div class="tunables-grid">
+        <div class="tunable-card">
+          <div class="tunable-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Signal Weights (Sum to 1.0)
+          </div>
+          
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>Impact Weight (<span id="val-w-impact">0.45</span>)</span>
+            </div>
+            <input type="range" id="slider-w-impact" min="0.1" max="0.8" step="0.05" value="0.45">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>Drift Weight (<span id="val-w-drift">0.25</span>)</span>
+            </div>
+            <input type="range" id="slider-w-drift" min="0.0" max="0.5" step="0.05" value="0.25">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>Irreversibility Weight (<span id="val-w-irrev">0.30</span>)</span>
+            </div>
+            <input type="range" id="slider-w-irrev" min="0.1" max="0.6" step="0.05" value="0.30">
+          </div>
+        </div>
+
+        <div class="tunable-card">
+          <div class="tunable-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Friction Tier Cutoffs
+          </div>
+          
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>WARN Cutoff (<span id="val-th-warn">0.30</span>)</span>
+            </div>
+            <input type="range" id="slider-th-warn" min="0.1" max="0.4" step="0.05" value="0.30">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>CONFIRM Cutoff (<span id="val-th-confirm">0.55</span>)</span>
+            </div>
+            <input type="range" id="slider-th-confirm" min="0.4" max="0.7" step="0.05" value="0.55">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>BLOCK Cutoff (<span id="val-th-block">0.80</span>)</span>
+            </div>
+            <input type="range" id="slider-th-block" min="0.7" max="0.95" step="0.05" value="0.80">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quickstart & Installation -->
+  <section class="quickstart-section" id="quickstart">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Get Started
+        </div>
+        <h2 class="section-title">Add to Your Shell in 10 Seconds</h2>
+        <p class="section-desc">
+          Works natively in Bash and Zsh on macOS and Linux.
+        </p>
+      </div>
+
+      <div class="quickstart-card">
+        <div class="qs-tabs">
+          <button class="qs-tab active" data-tab="bash">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            1. One-Line Load
+          </button>
+          <button class="qs-tab" data-tab="persist">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            2. Persist in .zshrc / .bashrc
+          </button>
+          <button class="qs-tab" data-tab="pytest">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            3. Run Pytest Suite (35 tests)
+          </button>
+        </div>
+
+        <div class="qs-content active" id="tab-bash">
+          <div class="code-snippet-box">
+            <div class="code-box-header">
+              <div class="code-box-dots">
+                <span class="code-box-dot r"></span>
+                <span class="code-box-dot y"></span>
+                <span class="code-box-dot g"></span>
+              </div>
+              <span>bash — instant load</span>
+              <button class="code-copy-btn" onclick="copyRaw('source /Users/pratheepselvam/Documents/kernal/guard.sh')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <pre class="code-box-body"><span class="sh-prompt">$ </span><span class="sh-cmd">source</span> <span class="sh-path">/Users/pratheepselvam/Documents/kernal/guard.sh</span></pre>
+          </div>
+          <p class="qs-note">That's it! <code>rm</code>, <code>mv</code>, <code>dd</code>, <code>chmod</code>, <code>chown</code>, and <code>git</code> are immediately protected.</p>
+        </div>
+
+        <div class="qs-content" id="tab-persist">
+          <div class="code-snippet-box">
+            <div class="code-box-header">
+              <div class="code-box-dots">
+                <span class="code-box-dot r"></span>
+                <span class="code-box-dot y"></span>
+                <span class="code-box-dot g"></span>
+              </div>
+              <span>zsh / bash persistence</span>
+              <button class="code-copy-btn" onclick="copyRaw('echo \'source /Users/pratheepselvam/Documents/kernal/guard.sh\' >> ~/.zshrc')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <pre class="code-box-body"><span class="sh-prompt">$ </span><span class="sh-cmd">echo</span> <span class="sh-str">'source /Users/pratheepselvam/Documents/kernal/guard.sh'</span> <span class="sh-op">&gt;&gt;</span> <span class="sh-path">~/.zshrc</span></pre>
+          </div>
+          <p class="qs-note">Loads automatically on every interactive terminal session.</p>
+        </div>
+
+        <div class="qs-content" id="tab-pytest">
+          <div class="code-snippet-box">
+            <div class="code-box-header">
+              <div class="code-box-dots">
+                <span class="code-box-dot r"></span>
+                <span class="code-box-dot y"></span>
+                <span class="code-box-dot g"></span>
+              </div>
+              <span>pytest test runner</span>
+              <button class="code-copy-btn" onclick="copyRaw('pytest -v tests/')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <pre class="code-box-body"><span class="sh-prompt">$ </span><span class="sh-cmd">pytest</span> <span class="sh-flag">-v</span> <span class="sh-path">tests/</span>
+<span class="sh-comment"># ============================== 35 passed in 1.08s ==============================</span></pre>
+          </div>
+          <p class="qs-note">Runs 35 deterministic unit tests covering classifier, VFS walking, git state, drift, and decision bounds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-left">
+        <div class="brand-text">
+          <span class="brand-name">Grounded Intent Guard</span>
+          <span class="brand-sub">Non-ML Pre-Execution Shell Safety</span>
+        </div>
+        <p class="footer-copy">© 2026 Team Bro Code (Pratheep Selvam &amp; Team) • Released under MIT License</p>
+      </div>
+      <div class="footer-right">
+        <div class="footer-links">
+          <a href="index.html">Interactive Sandbox</a>
+          <a href="docs.html#runbook">Verification Runbook</a>
+          <a href="docs.html#limitations">Threat Model</a>
+          <a href="docs.html#tunables">Tunables</a>
+          <a href="license.html">MIT License</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

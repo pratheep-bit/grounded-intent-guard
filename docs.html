@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verification Runbook & Documentation — Grounded Intent Guard</title>
+  <meta name="description" content="Complete step-by-step verification runbook, architecture reference, disclosed limitations, and tunables guide for Grounded Intent Guard.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navigation Bar — Guaranteed Single Line -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <div class="brand-icon">
+          <!-- Custom Shield + Terminal Vector Logo -->
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="8 10 11 13 8 16"/>
+            <line x1="13" y1="16" x2="16" y2="16"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Grounded Intent Guard</span>
+          <span class="brand-tag">Docs & Runbook</span>
+        </div>
+      </a>
+
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          Terminal Demo
+        </a>
+        <a href="#runbook" class="nav-link active">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          6-Step Verification
+        </a>
+        <a href="#limitations" class="nav-link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Threat Model & Limits
+        </a>
+        <a href="#tunables" class="nav-link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Tunables
+        </a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="index.html#demo-sandbox" class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Back to Demo
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Docs Hero -->
+  <section class="hero-section" style="padding: 3.5rem 0 2.5rem;">
+    <div class="container hero-container">
+      <div class="hero-badge">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>Developer Guide & Verification Runbook</span>
+      </div>
+
+      <h1 class="hero-title" style="font-size: 2.4rem;">
+        Complete System Verification & Documentation
+      </h1>
+
+      <p class="hero-subtitle">
+        Step-by-step test commands with clean syntax highlighting, expected outputs, and architectural boundaries.
+      </p>
+    </div>
+  </section>
+
+  <!-- 6-Step Verification Runbook Section -->
+  <section class="docs-section" id="runbook">
+    <div class="container">
+      <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+        <div class="section-tag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Verification Steps
+        </div>
+        <h2 class="section-title">6-Step Wiring & Verification Runbook</h2>
+        <p class="section-desc" style="margin: 0;">
+          Execute each command in sequence to verify all components of Grounded Intent Guard on your machine.
+        </p>
+      </div>
+
+      <div class="docs-grid">
+
+        <!-- Step 1 -->
+        <div class="runbook-step-card">
+          <div class="runbook-header">
+            <div class="runbook-num-title">
+              <span class="runbook-badge">STEP 1</span>
+              <span>Sanity-test impact vector in isolation (No deletion occurs)</span>
+            </div>
+          </div>
+          <p class="runbook-desc">
+            Tests that <code>compute_impact_vector()</code> accurately evaluates physical file targets without actually deleting anything.
+          </p>
+          
+          <div class="code-snippet-box">
+            <div class="code-box-header">
+              <div class="code-box-dots">
+                <span class="code-box-dot r"></span>
+                <span class="code-box-dot y"></span>
+                <span class="code-box-dot g"></span>
+              </div>
+              <span>bash — step-1.sh</span>
+              <button class="code-copy-btn" onclick="copyCode('cmd-step1')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <pre class="code-box-body" id="cmd-step1"><span class="sh-prompt">$ </span><span class="sh-cmd">mkdir</span> <span class="sh-flag">-p</span> <span class="sh-path">/tmp/demo</span> <span class="sh-op">&amp;&amp;</span> <span class="sh-cmd">echo</span> <span class="sh-str">"hi"</span> <span class="sh-op">&gt;</span> <span class="sh-path">/tmp/demo/a.txt</span>
+<span class="sh-prompt">$ </span><span class="sh-cmd">python3</span> <span class="sh-path">guard_engine.py</span> <span class="sh-subcmd">rm</span> <span class="sh-flag">-rf</span> <span class="sh-path">/tmp/demo</span></pre>
+          </div>
+
+          <div class="expected-output-box">
+            <div class="expected-title">Expected Behavior:</div>
+            Silence with exit code 0 (tiny 1-file target under 0.30 WARN threshold) or a clean risk assessment explaining the impact.
+          </div>
+        </div>
+
+        <!-- Step 2 (Flagship Test - Fully Syntax Highlighted) -->
+        <div class="runbook-step-card">
+          <div class="runbook-header">
+            <div class="runbook-num-title">
+              <span class="runbook-badge">STEP 2</span>
+              <span>Sanity-test git-grounded impact (Flagship Test)</span>
+            </div>
+          </div>
+          <p class="runbook-desc">
+            The core differentiator: <code>git reset --hard</code> names no explicit paths, but Grounded Intent Guard inspects git porcelain status to ground uncommitted work loss.
+          </p>
+
+          <div class="code-snippet-box">
+            <div class="code-box-header">
+              <div class="code-box-dots">
+                <span class="code-box-dot r"></span>
+                <span class="code-box-dot y"></span>
+                <span class="code-box-dot g"></span>
+              </div>
+              <span>bash — step-2-git-test.sh</span>
+              <button class="code-copy-btn" onclick="copyRaw('mkdir -p /tmp/demogit && cd /tmp/demogit && git init -q -b main && git config user.email a@a.com && git config user.name a && echo one > a.txt && git add -A && git commit -qm init && echo two >> a.txt && python3 /Users/pratheepselvam/Documents/kernal/guard_engine.py git reset --hard')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy One-Liner
+              </button>
+            </div>
+            <pre class="code-box-body" id="cmd-step2"><span class="sh-comment"># 1. Initialize a test repository with initial commit</span>
+<span class="sh-prompt">$ </span><span class="sh-cmd">mkdir</span> <span class="sh-flag">-p</span> <span class="sh-path">/tmp/demogit</span> <span class="sh-op">&amp;&amp;</span> <span class="sh-cmd">cd</span> <span class="sh-path">/tmp/demogit</span>
+<span class="sh-prompt">$ </span><span class="sh-cmd">git</span> <span class="sh-subcmd">init</span> <span class="sh-flag">-q</span> <span class="sh-flag">-b</span> <span class="sh-str">main</span> <span class="sh-op">&amp;&amp;</span> <span class="sh-cmd">git</span> <span class="sh-subcmd">config</span> <span class="sh-str">user.email</span> <span class="sh-str">"a@a.com"</span> <span class="sh-op">&amp;&amp;</span> <span class="sh-cmd">git</span> <span class="sh-subcmd">config</span> <span class="sh-str">user.name</span> <span class="sh-str">"a"</span>
+<span class="sh-prompt">$ </span><span class="sh-cmd">echo</span> <span class="sh-str">"one"</span> <span class="sh-op">&gt;</span> <span class="sh-path">a.txt</span> <span class="sh-op">&amp;&amp;</span> <span class="sh-cmd">git</span> <span class="sh-subcmd">add</span> <span class="sh-flag">-A</span> <span class="sh-op">&amp;&amp;</span> <span class="sh-cmd">git</span> <span class="sh-subcmd">commit</span> <span class="sh-flag">-qm</span> <span class="sh-str">"init"</span>
+
+<span class="sh-comment"># 2. Add uncommitted changes to create uncommitted dirty state</span>
+<span class="sh-prompt">$ </span><span class="sh-cmd">echo</span> <span class="sh-str">"two"</span> <span class="sh-op">&gt;&gt;</span> <span class="sh-path">a.txt</span>
+
+<span class="sh-comment"># 3. Test destructive git reset interception</span>
+<span class="sh-prompt">$ </span><span class="sh-cmd">python3</span> <span class="sh-path">/Users/pratheepselvam/Documents/kernal/guard_engine.py</span> <span class="sh-subcmd">git reset</span> <span class="sh-flag">--hard</span></pre>
+          </div>
+
+          <div class="expected-output-box warning">
+            <div class="expected-title">Expected Behavior:</div>
+            Triggers a <code>WARN</code> or <code>CONFIRM</code> explanation mentioning <strong>uncommitted git changes</strong> and calculating 0.20 recoverability, even without any path argument.
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="runbook-step-card">
+          <div class="runbook-header">
+            <div class="runbook-num-title">
+              <span class="runbook-badge">STEP 3</span>
+              <span>Sanity-test trajectory drift logging</span>
+            </div>
+          </div>
+          <p class="runbook-desc">
+            Tests non-blocking category recording via <code>--log-only</code> without executing full checks.
+          </p>
+
+          <div class="code-snippet-box">
+            <div class="code-box-header">
+              <div class="code-box-dots">
+                <span class="code-box-dot r"></span>
+                <span class="code-box-dot y"></span>
+                <span class="code-box-dot g"></span>
+              </div>
+              <span>bash — step-3-drift.sh</span>
+              <button class="code-copy-btn" onclick="copyRaw('python3 guard_engine.py --log-only \"ls -la\" && cat /tmp/guard_session.json')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <pre class="code-box-body" id="cmd-step3"><span class="sh-prompt">$ </span><span class="sh-cmd">python3</span> <span class="sh-path">guard_engine.py</span> <span class="sh-flag">--log-only</span> <span class="sh-str">"ls -la"</span> <span class="sh-op">&amp;&amp;</span> <span class="sh-cmd">cat</span> <span class="sh-path">/tmp/guard_session.json</span></pre>
+          </div>
+
+          <div class="expected-output-box">
+            <div class="expected-title">Expected Behavior:</div>
+            Outputs a valid JSON state containing <code>{"window": ["OTHER"]}</code> in the session file.
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="runbook-step-card">
+          <div class="runbook-header">
+            <div class="runbook-num-title">
+              <span class="runbook-badge">STEP 4</span>
+              <span>Source shell integration into interactive shell</span>
+            </div>
+          </div>
+          <p class="runbook-desc">
+            Spawns an interactive shell with <code>guard.sh</code> loaded and tests interactive abortion (`n` at confirm prompt).
+          </p>
+
+          <div class="code-snippet-box">
+            <div class="code-box-header">
+              <div class="code-box-dots">
+                <span class="code-box-dot r"></span>
+                <span class="code-box-dot y"></span>
+                <span class="code-box-dot g"></span>
+              </div>
+              <span>bash — step-4-shell.sh</span>
+              <button class="code-copy-btn" onclick="copyRaw('bash --rcfile <(echo \'source /Users/pratheepselvam/Documents/kernal/guard.sh\')')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <pre class="code-box-body" id="cmd-step4"><span class="sh-comment"># Start an interactive subshell with guard.sh sourced</span>
+<span class="sh-prompt">$ </span><span class="sh-cmd">bash</span> <span class="sh-flag">--rcfile</span> <span class="sh-str">&lt;(echo 'source /Users/pratheepselvam/Documents/kernal/guard.sh')</span>
+
+<span class="sh-comment"># Create test targets and test interactive prompt</span>
+<span class="sh-prompt">guard$ </span><span class="sh-cmd">mkdir</span> <span class="sh-flag">-p</span> <span class="sh-path">/tmp/demo_folder</span> <span class="sh-op">&amp;&amp;</span> <span class="sh-cmd">touch</span> <span class="sh-path">/tmp/demo_folder/data.bin</span>
+<span class="sh-prompt">guard$ </span><span class="sh-cmd">rm</span> <span class="sh-flag">-rf</span> <span class="sh-path">/tmp/demo_folder</span>
+<span class="sh-comment"># -> Type 'n' to abort deletion when prompted</span>
+<span class="sh-prompt">guard$ </span><span class="sh-cmd">ls</span> <span class="sh-flag">-d</span> <span class="sh-path">/tmp/demo_folder</span>  <span class="sh-comment"># Verify folder is preserved!</span></pre>
+          </div>
+
+          <div class="expected-output-box warning">
+            <div class="expected-title">Expected Behavior:</div>
+            Guard prompts <code>[guard] Proceed with this DELETE anyway? [y/N]</code>. Entering <code>n</code> aborts execution with exit code 1; <code>ls</code> confirms files remain intact.
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="runbook-step-card">
+          <div class="runbook-header">
+            <div class="runbook-num-title">
+              <span class="runbook-badge">STEP 5</span>
+              <span>Confirm DEBUG trap doesn't double-log guarded commands</span>
+            </div>
+          </div>
+          <p class="runbook-desc">
+            Ensures that guarded commands wrapped by shell functions are logged once by the wrapper, and not duplicated by the DEBUG trap.
+          </p>
+
+          <div class="code-snippet-box">
+            <div class="code-box-header">
+              <div class="code-box-dots">
+                <span class="code-box-dot r"></span>
+                <span class="code-box-dot y"></span>
+                <span class="code-box-dot g"></span>
+              </div>
+              <span>bash — step-5-trap-check.sh</span>
+              <button class="code-copy-btn" onclick="copyRaw('rm /tmp/throwaway.txt; ls -la /tmp; cat /tmp/guard_session.json')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <pre class="code-box-body" id="cmd-step5"><span class="sh-prompt">$ </span><span class="sh-cmd">touch</span> <span class="sh-path">/tmp/throwaway.txt</span> <span class="sh-op">&amp;&amp;</span> <span class="sh-cmd">rm</span> <span class="sh-path">/tmp/throwaway.txt</span>
+<span class="sh-prompt">$ </span><span class="sh-cmd">ls</span> <span class="sh-flag">-la</span> <span class="sh-path">/tmp</span>
+<span class="sh-prompt">$ </span><span class="sh-cmd">cat</span> <span class="sh-path">/tmp/guard_session.json</span></pre>
+          </div>
+
+          <div class="expected-output-box">
+            <div class="expected-title">Expected Behavior:</div>
+            The session window contains exactly one <code>DELETE</code> entry and one <code>OTHER</code> entry (no double-counting).
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="runbook-step-card">
+          <div class="runbook-header">
+            <div class="runbook-num-title">
+              <span class="runbook-badge">STEP 6</span>
+              <span>Rehearse the known bypass (Disclosed Limitation)</span>
+            </div>
+          </div>
+          <p class="runbook-desc">
+            Verify the documented bypass mechanism using backslash escape (<code>\rm</code>) or absolute path (<code>/bin/rm</code>).
+          </p>
+
+          <div class="code-snippet-box">
+            <div class="code-box-header">
+              <div class="code-box-dots">
+                <span class="code-box-dot r"></span>
+                <span class="code-box-dot y"></span>
+                <span class="code-box-dot g"></span>
+              </div>
+              <span>bash — step-6-bypass.sh</span>
+              <button class="code-copy-btn" onclick="copyRaw('touch /tmp/bypass_test.txt && \\rm /tmp/bypass_test.txt')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <pre class="code-box-body" id="cmd-step6"><span class="sh-prompt">$ </span><span class="sh-cmd">touch</span> <span class="sh-path">/tmp/bypass_test.txt</span>
+<span class="sh-prompt">$ </span><span class="sh-cmd">\rm</span> <span class="sh-path">/tmp/bypass_test.txt</span>  <span class="sh-comment"># Or: /bin/rm /tmp/bypass_test.txt</span></pre>
+          </div>
+
+          <div class="expected-output-box danger">
+            <div class="expected-title">Expected Behavior:</div>
+            Deletes instantly without guard interception. This confirms that shell-function wrapping operates in user space and discloses the design boundary.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Diagram & Exporter in Docs -->
+  <section class="docs-section" id="architecture" style="background: #ffffff;">
+    <div class="container">
+      <div class="section-header" style="text-align: left; margin-bottom: 1.5rem;">
+        <div class="section-tag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          System Blueprint
+        </div>
+        <h2 class="section-title">Deep Architecture & Dataflow Diagram</h2>
+        <p class="section-desc" style="margin: 0;">
+          Detailed component interactions, zero-ML impact sensors, drift telemetry, and continuous risk kernel.
+        </p>
+      </div>
+
+      <div class="arch-diagram-card">
+        <div class="arch-toolbar">
+          <div class="arch-toolbar-title">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>Architecture & Dataflow Specification (v1.0 Local Core)</span>
+          </div>
+          <div class="arch-toolbar-actions">
+            <button class="btn btn-secondary btn-sm" onclick="downloadDiagramSVG()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download SVG (~25 KB)
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="downloadDiagramPNG()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Download High-Res PNG (&lt; 200 KB)
+            </button>
+          </div>
+        </div>
+
+        <div class="arch-svg-container">
+          <svg id="architecture-diagram-svg" class="arch-svg" width="100%" height="auto" viewBox="0 0 1100 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bgGrad2" x1="0" y1="0" x2="1100" y2="620" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#ffffff"/>
+                <stop offset="1" stop-color="#f8fafc"/>
+              </linearGradient>
+              <filter id="cardShadow2" x="-10%" y="-10%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.06"/>
+              </filter>
+            </defs>
+
+            <!-- Background Canvas -->
+            <rect width="1100" height="620" rx="12" fill="url(#bgGrad2)"/>
+            <rect width="1100" height="620" rx="12" stroke="#e2e8f0" stroke-width="1.5"/>
+
+            <!-- Connecting Flow Paths (Precise Alignment) -->
+            <!-- Ingress -> Classifier -->
+            <path d="M 240 285 L 290 285" stroke="#64748b" stroke-width="2" stroke-dasharray="4 4"/>
+
+            <!-- Classifier -> 5 Sensors (Branching) -->
+            <path d="M 510 285 L 535 285 L 535 95 L 560 95" stroke="#2563eb" stroke-width="2"/>
+            <path d="M 535 285 L 535 190 L 560 190" stroke="#2563eb" stroke-width="2"/>
+            <path d="M 535 285 L 560 285" stroke="#2563eb" stroke-width="2"/>
+            <path d="M 535 285 L 535 380 L 560 380" stroke="#2563eb" stroke-width="2"/>
+            <path d="M 535 285 L 535 475 L 560 475" stroke="#2563eb" stroke-width="2"/>
+
+            <!-- 5 Sensors -> Kernel (Convergence) -->
+            <path d="M 770 95 L 795 95 L 795 270 L 820 270" stroke="#7c3aed" stroke-width="2"/>
+            <path d="M 770 190 L 795 190 L 795 280 L 820 280" stroke="#7c3aed" stroke-width="2"/>
+            <path d="M 770 285 L 820 285" stroke="#7c3aed" stroke-width="2"/>
+            <path d="M 770 380 L 795 380 L 795 295 L 820 295" stroke="#7c3aed" stroke-width="2"/>
+            <path d="M 770 475 L 795 475 L 795 305 L 820 305" stroke="#7c3aed" stroke-width="2"/>
+
+            <!-- Kernel -> 4 Tiers (Dispatch) -->
+            <path d="M 940 240 L 960 240 L 960 100 L 980 100" stroke="#10b981" stroke-width="2"/>
+            <path d="M 940 270 L 960 270 L 960 205 L 980 205" stroke="#f59e0b" stroke-width="2"/>
+            <path d="M 940 300 L 960 300 L 960 310 L 980 310" stroke="#f97316" stroke-width="2"/>
+            <path d="M 940 330 L 960 330 L 960 415 L 980 415" stroke="#ef4444" stroke-width="2"/>
+
+            <!-- LAYER 1: INGRESS & INTERCEPTION (Column 1) -->
+            <g id="d-layer-ingress" transform="translate(35, 60)">
+              <rect width="205" height="450" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow2)"/>
+              <rect width="205" height="32" rx="8" fill="#0f172a"/>
+              <text x="12" y="21" fill="#38bdf8" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="10.5">1. SHELL INTERCEPT</text>
+              
+              <text x="14" y="60" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="13">Interactive Terminal</text>
+              <text x="14" y="78" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="10">CLI: bash, zsh</text>
+
+              <rect x="12" y="95" width="181" height="90" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+              <text x="20" y="115" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">Protected Executables</text>
+              <text x="20" y="135" fill="#2563eb" font-family="JetBrains Mono, monospace" font-weight="600" font-size="10">rm • mv • dd</text>
+              <text x="20" y="153" fill="#2563eb" font-family="JetBrains Mono, monospace" font-weight="600" font-size="10">chmod • chown</text>
+              <text x="20" y="171" fill="#7c3aed" font-family="JetBrains Mono, monospace" font-weight="600" font-size="10">git (destructive)</text>
+
+              <rect x="12" y="200" width="181" height="95" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+              <text x="20" y="220" fill="#2563eb" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">guard.sh Integration</text>
+              <text x="20" y="238" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Shell function overrides</text>
+              <text x="20" y="254" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Non-destructive DEBUG trap</text>
+              <text x="20" y="270" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Single-log deduplication</text>
+
+              <rect x="12" y="310" width="181" height="120" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+              <text x="20" y="330" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">Trajectory Session</text>
+              <text x="20" y="348" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">/tmp/guard_session.json</text>
+              <text x="20" y="370" fill="#047857" font-family="JetBrains Mono, monospace" font-size="9">{"window": [</text>
+              <text x="28" y="386" fill="#0284c7" font-family="JetBrains Mono, monospace" font-size="8.5">"OTHER", "OTHER",</text>
+              <text x="28" y="400" fill="#b91c1c" font-family="JetBrains Mono, monospace" font-size="8.5">"DELETE", "GIT_OTHER"</text>
+              <text x="20" y="416" fill="#047857" font-family="JetBrains Mono, monospace" font-size="9">]}</text>
+            </g>
+
+            <!-- LAYER 2: CATEGORY CLASSIFIER & ARGV PARSER (Column 2) -->
+            <g id="d-layer-classify" transform="translate(290, 60)">
+              <rect width="220" height="450" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow2)"/>
+              <rect width="220" height="32" rx="8" fill="#1e293b"/>
+              <text x="12" y="21" fill="#a7f3d0" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="10.5">2. CATEGORY CLASSIFIER</text>
+              
+              <text x="14" y="60" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="13">classify_command(argv)</text>
+              <text x="14" y="78" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="10">Deterministic token parser (0.0ms)</text>
+
+              <rect x="12" y="95" width="196" height="155" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+              <text x="20" y="116" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">Tokenized Categories</text>
+              
+              <g transform="translate(18, 126)">
+                <rect x="0" y="0" width="56" height="20" rx="4" fill="#fee2e2"/><text x="6" y="14" fill="#b91c1c" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">DELETE</text>
+                <rect x="62" y="0" width="72" height="20" rx="4" fill="#ffedd5"/><text x="68" y="14" fill="#c2410c" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">OVERWRITE</text>
+                <rect x="140" y="0" width="44" height="20" rx="4" fill="#f3e8ff"/><text x="146" y="14" fill="#7e22ce" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">GIT_D</text>
+                
+                <rect x="0" y="26" width="76" height="20" rx="4" fill="#e0f2fe"/><text x="6" y="40" fill="#0369a1" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">PERMISSION</text>
+                <rect x="82" y="26" width="46" height="20" rx="4" fill="#f1f5f9"/><text x="88" y="40" fill="#475569" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">MOVE</text>
+                <rect x="134" y="26" width="50" height="20" rx="4" fill="#ecfdf5"/><text x="140" y="40" fill="#047857" font-family="JetBrains Mono, monospace" font-weight="700" font-size="9">OTHER</text>
+              </g>
+
+              <text x="20" y="196" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Matches subcommands &amp; flags</text>
+              <text x="20" y="212" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Distinguishes soft vs hard reset</text>
+              <text x="20" y="228" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Detects force flags (-f, --force)</text>
+
+              <rect x="12" y="265" width="196" height="165" rx="6" fill="#f0f9ff" stroke="#bae6fd"/>
+              <text x="20" y="286" fill="#0369a1" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">Target Path Extraction</text>
+              <text x="20" y="306" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Extracts of= from dd commands</text>
+              <text x="20" y="324" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Strips CLI flags (-rf, --recursive)</text>
+              <text x="20" y="342" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Resolves relative paths vs CWD</text>
+              <text x="20" y="360" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• Identifies cross-mount boundaries</text>
+              
+              <rect x="18" y="375" width="184" height="42" rx="4" fill="#ffffff" stroke="#93c5fd"/>
+              <text x="26" y="392" fill="#0f172a" font-family="JetBrains Mono, monospace" font-size="9">Target: ./build/</text>
+              <text x="26" y="407" fill="#0284c7" font-family="JetBrains Mono, monospace" font-size="8.5">Grounding paths dispatched →</text>
+            </g>
+
+            <!-- LAYER 3: 5 STATE-GROUNDED SENSORS (Column 3) -->
+            <!-- Sensor 1: VFS File Scanner -->
+            <g id="d-sensor-vfs" transform="translate(560, 60)">
+              <rect width="210" height="70" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" filter="url(#cardShadow2)"/>
+              <text x="10" y="18" fill="#2563eb" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">A. VFS Physical Impact</text>
+              <text x="10" y="34" fill="#0f172a" font-family="JetBrains Mono, monospace" font-weight="600" font-size="9.5">os.walk() • stat()</text>
+              <text x="10" y="49" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5">Scans real file_count &amp; total_bytes</text>
+              <text x="10" y="62" fill="#047857" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="8.5">✓ Eliminates ghost file warnings</text>
+            </g>
+
+            <!-- Sensor 2: Git Working Tree -->
+            <g id="d-sensor-git" transform="translate(560, 155)">
+              <rect width="210" height="70" rx="6" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" filter="url(#cardShadow2)"/>
+              <text x="10" y="18" fill="#7c3aed" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">B. Git Porcelain State</text>
+              <text x="10" y="34" fill="#0f172a" font-family="JetBrains Mono, monospace" font-weight="600" font-size="9.5">git status --porcelain</text>
+              <text x="10" y="49" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5">Counts dirty staged/unstaged changes</text>
+              <text x="10" y="62" fill="#7c3aed" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="8.5">★ Grounds `git reset --hard` loss</text>
+            </g>
+
+            <!-- Sensor 3: Raw Block Device -->
+            <g id="d-sensor-blockdev" transform="translate(560, 250)">
+              <rect width="210" height="70" rx="6" fill="#ffffff" stroke="#ea580c" stroke-width="1.5" filter="url(#cardShadow2)"/>
+              <text x="10" y="18" fill="#ea580c" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">C. Raw Block Devices</text>
+              <text x="10" y="34" fill="#0f172a" font-family="JetBrains Mono, monospace" font-weight="600" font-size="9.5">blockdev --getsize64</text>
+              <text x="10" y="49" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5">Detects raw disk node overrides</text>
+              <text x="10" y="62" fill="#b91c1c" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="8.5">⚠ Overwrite override: risk = 0.95</text>
+            </g>
+
+            <!-- Sensor 4: Trajectory Drift -->
+            <g id="d-sensor-drift" transform="translate(560, 345)">
+              <rect width="210" height="70" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#cardShadow2)"/>
+              <text x="10" y="18" fill="#0284c7" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">D. Trajectory Drift Engine</text>
+              <text x="10" y="34" fill="#0f172a" font-family="JetBrains Mono, monospace" font-weight="600" font-size="9.5">Window Size: 12 commands</text>
+              <text x="10" y="49" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5">Drift = 1.0 − (matches / len(window))</text>
+              <text x="10" y="62" fill="#0284c7" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="8.5">Zero-ML session telemetry</text>
+            </g>
+
+            <!-- Sensor 5: Recoverability Factors -->
+            <g id="d-sensor-recov" transform="translate(560, 440)">
+              <rect width="210" height="70" rx="6" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" filter="url(#cardShadow2)"/>
+              <text x="10" y="18" fill="#16a34a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">E. Recoverability Factors</text>
+              <text x="10" y="34" fill="#0f172a" font-family="JetBrains Mono, monospace" font-weight="600" font-size="9.5">Remotes • Trash • Snapshots</text>
+              <text x="10" y="49" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5">Checks upstream push &amp; restore tools</text>
+              <text x="10" y="62" fill="#16a34a" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="8.5">Scales friction proportionally</text>
+            </g>
+
+            <!-- LAYER 4: COMPOSITE RISK MATHEMATICAL KERNEL (Column 4 Left) -->
+            <g id="d-layer-kernel" transform="translate(820, 200)">
+              <rect width="120" height="170" rx="8" fill="#0f172a" stroke="#334155" stroke-width="2" filter="url(#cardShadow2)"/>
+              <text x="10" y="22" fill="#38bdf8" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="10.5">RISK KERNEL</text>
+              <text x="10" y="38" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="8.5">Continuous Math</text>
+
+              <rect x="7" y="48" width="106" height="64" rx="4" fill="#1e293b"/>
+              <text x="12" y="63" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="8.5">Score =</text>
+              <text x="12" y="77" fill="#93c5fd" font-family="JetBrains Mono, monospace" font-size="7.5">0.45·Impact +</text>
+              <text x="12" y="89" fill="#c4b5fd" font-family="JetBrains Mono, monospace" font-size="7.5">0.25·Drift +</text>
+              <text x="12" y="101" fill="#86efac" font-family="JetBrains Mono, monospace" font-size="7.5">0.30·(1-Recov)</text>
+
+              <rect x="7" y="120" width="106" height="40" rx="4" fill="#3b0764" stroke="#a855f7" stroke-width="1"/>
+              <text x="12" y="134" fill="#e9d5ff" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="7.5">LATENCY</text>
+              <text x="12" y="150" fill="#38bdf8" font-family="JetBrains Mono, monospace" font-weight="700" font-size="11">&lt; 2.0 ms</text>
+            </g>
+
+            <!-- LAYER 5: 4-TIER ACTION DISPATCH (Column 4 Right) -->
+            <!-- 1. ALLOW -->
+            <g transform="translate(980, 75)">
+              <rect width="85" height="52" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+              <text x="16" y="22" fill="#047857" font-family="JetBrains Mono, monospace" font-weight="800" font-size="11">ALLOW</text>
+              <text x="12" y="38" fill="#065f46" font-family="Plus Jakarta Sans, sans-serif" font-size="8">&lt; 0.30 (Silent)</text>
+            </g>
+
+            <!-- 2. WARN -->
+            <g transform="translate(980, 180)">
+              <rect width="85" height="52" rx="6" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="20" y="22" fill="#b45309" font-family="JetBrains Mono, monospace" font-weight="800" font-size="11">WARN</text>
+              <text x="12" y="38" fill="#92400e" font-family="Plus Jakarta Sans, sans-serif" font-size="8">0.30 - 0.54</text>
+            </g>
+
+            <!-- 3. CONFIRM -->
+            <g transform="translate(980, 285)">
+              <rect width="85" height="52" rx="6" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+              <text x="10" y="22" fill="#c2410c" font-family="JetBrains Mono, monospace" font-weight="800" font-size="10">CONFIRM</text>
+              <text x="8" y="38" fill="#9a3412" font-family="Plus Jakarta Sans, sans-serif" font-size="8">0.55-0.79 [y/N]</text>
+            </g>
+
+            <!-- 4. BLOCK -->
+            <g transform="translate(980, 390)">
+              <rect width="85" height="52" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+              <text x="18" y="22" fill="#b91c1c" font-family="JetBrains Mono, monospace" font-weight="800" font-size="11">BLOCK</text>
+              <text x="10" y="38" fill="#991b1b" font-family="Plus Jakarta Sans, sans-serif" font-size="8">≥ 0.80 (Exit 1)</text>
+            </g>
+
+            <!-- Bottom Invariant Summary Bar -->
+            <g transform="translate(35, 530)">
+              <rect width="1030" height="65" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+              <text x="14" y="22" fill="#0f172a" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">Architectural Invariants &amp; Guarantees</text>
+              <text x="14" y="40" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• 100% Deterministic &amp; Zero ML: No LLM calls, embeddings, or network hops.</text>
+              <text x="14" y="54" fill="#64748b" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5">• State Grounding: Risk is derived from physical disk bytes, git dirty status, and blockdev nodes.</text>
+            </g>
+
+          </svg>
+        </div>
+
+        <div class="diagram-legend">
+          <div class="legend-item"><span class="legend-chip blue"></span><span>Ingress &amp; Wrapper</span></div>
+          <div class="legend-item"><span class="legend-chip purple"></span><span>Category Tokenizer</span></div>
+          <div class="legend-item"><span class="legend-chip emerald"></span><span>Live State Sensors</span></div>
+          <div class="legend-item"><span class="legend-chip orange"></span><span>Composite Kernel</span></div>
+          <div class="legend-item"><span class="legend-chip red"></span><span>Friction Tier Gates</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Disclosed Limitations & Threat Model Section -->
+  <section class="docs-section" id="limitations" style="background: var(--bg-main);">
+    <div class="container">
+      <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+        <div class="section-tag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Security Boundaries
+        </div>
+        <h2 class="section-title">Disclosed Limitations & Threat Model</h2>
+        <p class="section-desc" style="margin: 0;">
+          Honest, transparent architectural disclosures. What Grounded Intent Guard does and does not protect against.
+        </p>
+      </div>
+
+      <div class="limitations-grid">
+        
+        <div class="limitation-card">
+          <h4>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="text-orange"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            1. Bypassable By Design (User Space Wrapping)
+          </h4>
+          <p>
+            Function wrapping is bypassed by escaped names (<code>\rm</code>), full binary paths (<code>/bin/rm</code>), or non-interactive bash scripts that don't source <code>guard.sh</code>. It is a pre-execution safety layer for human error and interactive shell workflows, not a kernel-level sandbox (e.g. eBPF/LSM).
+          </p>
+        </div>
+
+        <div class="limitation-card">
+          <h4>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="text-blue"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            2. Scoped to File-Centric Risk Models
+          </h4>
+          <p>
+            Intentionally scoped to commands whose danger is represented by a filesystem impact vector (files, bytes, git tree, mount boundaries). Commands like <code>kill</code>, <code>docker rm</code>, or <code>kubectl delete</code> require process state or dependency graph models not built into this MVP.
+          </p>
+        </div>
+
+        <div class="limitation-card">
+          <h4>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="text-purple"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            3. Snapshot Capability Is Stubbed
+          </h4>
+          <p>
+            <code>snapshot_available()</code> currently returns <code>False</code> by default. In production environments, it can be wired to <code>btrfs subvolume list</code> or ZFS snapshots to credit automated rollbacks in the recoverability calculation.
+          </p>
+        </div>
+
+        <div class="limitation-card">
+          <h4>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="text-emerald"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            4. Deep Tree Walking Scale
+          </h4>
+          <p>
+            Directory targets are traversed using standard <code>os.walk()</code>. For extremely massive mono-repos (100k+ files), a statistical sampling approach (walk 2,000 files and extrapolate) can be enabled to maintain sub-5ms evaluation latency.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Tunables Cheatsheet Section -->
+  <section class="docs-section" id="tunables">
+    <div class="container">
+      <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+        <div class="section-tag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Configuration Guide
+        </div>
+        <h2 class="section-title">Constants & Tunables Reference</h2>
+        <p class="section-desc" style="margin: 0;">
+          All constants are declared at the top of <code>guard_engine.py</code> and can be calibrated for your workload.
+        </p>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Constant</th>
+              <th>Default Value</th>
+              <th>Description</th>
+              <th>Recommended Tuning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>SESSION_FILE</code></td>
+              <td><code>/tmp/guard_session.json</code></td>
+              <td>Location for rolling trajectory history window</td>
+              <td>Move to <code>$XDG_RUNTIME_DIR</code> for multi-user safety</td>
+            </tr>
+            <tr>
+              <td><code>WINDOW_SIZE</code></td>
+              <td><code>12</code></td>
+              <td>Number of recent commands feeding drift computation</td>
+              <td>Set between 8 (fast context switch) and 20 (longer memory)</td>
+            </tr>
+            <tr>
+              <td><code>RISK_THRESHOLDS</code></td>
+              <td><code>{"WARN": 0.3, "CONFIRM": 0.55, "BLOCK": 0.8}</code></td>
+              <td>Score cutoffs mapping to friction tiers</td>
+              <td>Adjust in Calibration Lab based on team risk appetite</td>
+            </tr>
+            <tr>
+              <td><code>RISK_WEIGHTS</code></td>
+              <td><code>{"impact": 0.45, "drift": 0.25, "irreversibility": 0.30}</code></td>
+              <td>Relative weight of signals in composite score</td>
+              <td>Must sum to 1.0 (impact dominates data loss)</td>
+            </tr>
+            <tr>
+              <td><code>CATEGORY_RULES</code></td>
+              <td><code>DELETE, OVERWRITE, PERMISSION, MOVE</code></td>
+              <td>Mapping of commands to category types</td>
+              <td>Extend to intercept additional file-centric commands</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-left">
+        <div class="brand-text">
+          <span class="brand-name">Grounded Intent Guard</span>
+          <span class="brand-sub">Non-ML Pre-Execution Shell Safety</span>
+        </div>
+        <p class="footer-copy">© 2026 Team Bro Code (Pratheep Selvam &amp; Team) • Released under MIT License</p>
+      </div>
+      <div class="footer-right">
+        <div class="footer-links">
+          <a href="index.html">Live Demo</a>
+          <a href="docs.html#runbook">Verification Runbook</a>
+          <a href="docs.html#limitations">Threat Model</a>
+          <a href="docs.html#tunables">Tunables</a>
+          <a href="license.html">MIT License</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2800);
+    }
+
+    function copyRaw(text) {
+      navigator.clipboard.writeText(text);
+      showToast("Copied command to clipboard!");
+    }
+
+    function copyCode(id) {
+      const el = document.getElementById(id);
+      const text = el.innerText.replace(/^\$ /gm, '').trim();
+      navigator.clipboard.writeText(text);
+      showToast("Copied command to clipboard!");
+    }
+
+    function downloadDiagramSVG() {
+      const svgEl = document.getElementById("architecture-diagram-svg");
+      if (!svgEl) return;
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(svgEl);
+
+      if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      
+      const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "grounded-intent-guard-architecture.svg";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      const sizeKb = Math.round(blob.size / 1024);
+      showToast(`Downloaded Vector SVG (${sizeKb} KB, Infinite Resolution)!`);
+    }
+
+    function downloadDiagramPNG() {
+      const svgEl = document.getElementById("architecture-diagram-svg");
+      if (!svgEl) return;
+
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(svgEl);
+
+      if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+
+      const svgBlob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+
+      img.onload = function() {
+        const scale = 2; // 2x Retina High Quality (2200x1320)
+        const canvas = document.createElement("canvas");
+        canvas.width = 1100 * scale;
+        canvas.height = 660 * scale;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(function(pngBlob) {
+          const pngUrl = URL.createObjectURL(pngBlob);
+          const a = document.createElement("a");
+          a.href = pngUrl;
+          a.download = "grounded-intent-guard-architecture.png";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(pngUrl);
+          URL.revokeObjectURL(url);
+          const sizeKb = Math.round(pngBlob.size / 1024);
+          showToast(`Downloaded High-Res PNG (${sizeKb} KB, Ultra-Crisp)!`);
+        }, "image/png");
+      };
+
+      img.src = url;
+    }
+  </script>
+</body>
+</html>
