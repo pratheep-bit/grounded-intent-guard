@@ -5,6 +5,9 @@
 # Grounded Intent Guard
 **Deterministic, Zero-ML Pre-Execution Safety Layer for Shell Commands**
 
+**Team**: BRO CODE  
+**Team Creator**: PRATHEEP S  
+**Core Members**: VISHNU A, DIVYADHARSHINI K, RAAM KUMAR K R, HARIPRASATH C  
 **Live Production Web Sandbox**: [https://gig-shell.vercel.app/](https://gig-shell.vercel.app/)
 
 [![Build Status](https://img.shields.io/badge/Build-Passing-10B981?style=flat&logo=github-actions&logoColor=white)](https://github.com)
@@ -18,7 +21,7 @@
 
 An ultra-fast, deterministic pre-execution safety layer for interactive shells. Intercepts risky CLI operations (`rm`, `mv`, `dd`, `chmod`, `chown`, `git reset --hard`, `git clean`, `git push --force`) and continuously computes a **multi-signal, state-grounded impact vector** and **session-local trajectory drift** in under 2.0 ms before commands touch the filesystem.
 
-[Interactive Sandbox](https://gig-shell.vercel.app/) • [Verification Runbook](https://gig-shell.vercel.app/docs) • [Threat Model & Limitations](https://gig-shell.vercel.app/docs#limitations) • [Architecture Guide](ARCHITECTURE.md) • [MIT License](LICENSE)
+[Interactive Sandbox](https://gig-shell.vercel.app/) • [Presentation Slides](https://gig-shell.vercel.app/slides) • [Verification Runbook](https://gig-shell.vercel.app/docs) • [Threat Model & Limitations](https://gig-shell.vercel.app/docs#limitations) • [Architecture Guide](ARCHITECTURE.md) • [MIT License](LICENSE)
 
 ---
 
@@ -294,12 +297,13 @@ All engine hyperparameters are located at the top of `guard_engine.py`:
 
 Grounded Intent Guard was designed and built by **Team BRO CODE**.
 
-| Name | Role | Core Contributions |
-| :--- | :--- | :--- |
-| **Pratheep S** | **Team Lead & Core Architect** | Deterministic Risk Kernel, VFS & Git State Grounding Sensors, Web Terminal Sandbox & Vercel Deployment |
-| **Mahilesh A** | **Core Engineer** | Trajectory Drift Window Telemetry, Raw Block Device Subsystem & Threat Model Verification |
-| **Logithkumar K R** | **Core Engineer** | Shell Function Interceptor (`guard.sh`), DEBUG Trap Deduplication & Automated Test Suite |
-| **Rithikeswaran M** | **Core Engineer** | Vector Architecture Diagram, Calibration Lab UI & Documentation Runbook |
+| Avatar | Name | Role |
+| :---: | :--- | :--- |
+| **P** | **PRATHEEP S** | **Team Creator** |
+| **V** | **VISHNU A** | **MEMBER** |
+| **D** | **DIVYADHARSHINI K** | **MEMBER** |
+| **R** | **RAAM KUMAR K R** | **MEMBER** |
+| **H** | **HARIPRASATH C** | **MEMBER** |
 
 ---
 
@@ -308,4 +312,5 @@ Grounded Intent Guard was designed and built by **Team BRO CODE**.
 * **Project**: Grounded Intent Guard (GIG)
 * **Team**: BRO CODE
 * **Production Deployment**: [https://gig-shell.vercel.app/](https://gig-shell.vercel.app/)
+* **Presentation Deck**: [https://gig-shell.vercel.app/slides](https://gig-shell.vercel.app/slides)
 * **License**: Released under the [MIT License](LICENSE) (c) 2026 Bro Code (Pratheep Selvam & Team).
