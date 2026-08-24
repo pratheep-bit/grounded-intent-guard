@@ -5,9 +5,6 @@
 # Grounded Intent Guard
 **Deterministic, Zero-ML Pre-Execution Safety Layer for Shell Commands**
 
-**Team**: BRO CODE  
-**Team Lead**: Pratheep S  
-**Core Engineers**: Mahilesh A, Logithkumar K R, Rithikeswaran M  
 **Live Production Web Sandbox**: [https://gig-shell.vercel.app/](https://gig-shell.vercel.app/)
 
 [![Build Status](https://img.shields.io/badge/Build-Passing-10B981?style=flat&logo=github-actions&logoColor=white)](https://github.com)
