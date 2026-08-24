@@ -16,7 +16,7 @@
 
 ---
 
-An ultra-fast, deterministic pre-execution safety layer for interactive shells. Intercepts risky CLI operations (`rm`, `mv`, `dd`, `chmod`, `chown`, `git reset --hard`, `git clean`, `git push --force`) and continuously computes a **multi-signal, state-grounded impact vector** and **session-local trajectory drift** in $<2.0\text{ ms}$ before commands touch the filesystem.
+An ultra-fast, deterministic pre-execution safety layer for interactive shells. Intercepts risky CLI operations (`rm`, `mv`, `dd`, `chmod`, `chown`, `git reset --hard`, `git clean`, `git push --force`) and continuously computes a **multi-signal, state-grounded impact vector** and **session-local trajectory drift** in under 2.0 ms before commands touch the filesystem.
 
 [Interactive Sandbox](https://gig-shell.vercel.app/) • [Verification Runbook](https://gig-shell.vercel.app/docs) • [Threat Model & Limitations](https://gig-shell.vercel.app/docs#limitations) • [Architecture Guide](ARCHITECTURE.md) • [MIT License](LICENSE)
 
@@ -24,16 +24,16 @@ An ultra-fast, deterministic pre-execution safety layer for interactive shells. 
 
 ## 1. Executive Summary
 
-Most existing shell-safety tools (e.g., `safe-rm`, `rm -i`, sudo policies, AppArmor, ShellCheck, or LLM-wrapper agents) evaluate the command **string** or a **static syntax pattern** in isolation — never what the command will physically destroy right now on disk.
+Most existing shell-safety tools (such as safe-rm, `rm -i`, sudo policies, AppArmor, ShellCheck, or LLM-wrapper agents) evaluate the command string or a static syntax pattern in isolation, never what the command will physically destroy right now on disk.
 
-For example, `git reset --hard` takes **no path arguments**. A static regex or LLM classifier sees a standard git reset command and permits it, even if it will instantly destroy hours of uncommitted, dirty working-tree files.
+For example, `git reset --hard` takes no path arguments. A static regex or LLM classifier sees a standard git reset command and permits it, even if it will instantly destroy hours of uncommitted, dirty working-tree files.
 
-**Grounded Intent Guard (GIG)** solves this by applying the core engineering principles of aviation **Ground-Proximity Warning Systems (GPWS)** and industrial **Lockout-Tagout (LOTO)** to developer shells:
+Grounded Intent Guard (GIG) solves this by applying the core engineering principles of aviation Ground-Proximity Warning Systems (GPWS) and industrial Lockout-Tagout (LOTO) to developer shells:
 1. **Physical Byte & File Counting**: Traverses target paths via `os.walk()` and `stat()` to quantify physical loss before execution.
 2. **Git Porcelain Inspection**: Queries `git status --porcelain` in real-time to detect uncommitted staged and unstaged work.
 3. **Raw Device Interception**: Detects raw storage block device overrides (`/dev/sda`, `/dev/nvme0n1`) via `blockdev --getsize64`.
-4. **Zero-ML Session Drift**: Computes sudden behavioral divergence over a rolling 12-command window with $0\text{ms}$ embedding overhead.
-5. **Continuous 4-Tier Friction Gates**: Routes computed risk to `ALLOW` (silent), `WARN` (notice), `CONFIRM` (interactive `[y/N]`), or `BLOCK` (exit 1).
+4. **Zero-ML Session Drift**: Computes sudden behavioral divergence over a rolling 12-command window with zero embedding overhead.
+5. **Continuous 4-Tier Friction Gates**: Routes computed risk to `ALLOW` (silent), `WARN` (notice), `CONFIRM` (interactive prompt), or `BLOCK` (exit code 1).
 
 ---
 
@@ -103,28 +103,28 @@ graph TD
 ### 4.1 Physical Impact Vector Normalization ($I$)
 Physical file counts and total byte impact on disk are mapped onto a normalized impact score $I \in [0.0, 1.0]$:
 
-$$I = \min\left(1.0,\, \frac{\text{file\_count}}{500} \cdot 0.30 + \frac{\text{total\_bytes}}{100 \times 1024^2} \cdot 0.70\right)$$
+$$\text{Impact} = \min\left(1.0,\, \frac{\text{files}}{500} \cdot 0.30 + \frac{\text{bytes}}{100 \times 1024^2} \cdot 0.70\right)$$
 
-*Special Override*: When a raw device override (`/dev/sd*`, `/dev/nvme*`) is targeted, $I$ immediately jumps to $1.0$.
+*Special Override*: When a raw device override (`/dev/sda`, `/dev/nvme0n1`) is targeted, impact immediately jumps to 1.0.
 
 ### 4.2 Trajectory Drift Score ($D$)
 Session history is tracked over a bounded sliding window of $N=12$ commands in `/tmp/guard_session.json`. If history length $\ge 4$:
 
-$$D = 1.0 - \frac{\sum_{i=1}^{N} \mathbb{I}(\text{category}_i = \text{current\_category})}{N}$$
+$$\text{Drift} = 1.0 - \frac{\text{matches}}{N}$$
 
-*A sudden destructive command after 10 development commands produces $D \approx 0.90$.*
+*A sudden destructive command after 10 development commands produces drift of approximately 0.90.*
 
 ### 4.3 Composite Risk Score ($\text{Score}$)
 Calculates continuous multi-factor risk:
 
-$$\text{Score} = (0.45 \cdot I) + (0.25 \cdot D) + (0.30 \cdot (1.0 - R_{\text{recov}}))$$
+$$\text{Risk} = (0.45 \cdot \text{Impact}) + (0.25 \cdot \text{Drift}) + (0.30 \cdot (1.0 - \text{Recoverability}))$$
 
 ### 4.4 Action Gate Piecewise Dispatch
 $$\text{Action} = \begin{cases} 
-\text{ALLOW} & \text{if } \text{Score} < 0.30 \quad (\text{Silent execution}) \\ 
-\text{WARN} & \text{if } 0.30 \le \text{Score} < 0.55 \quad (\text{Diagnostic warning message}) \\ 
-\text{CONFIRM} & \text{if } 0.55 \le \text{Score} < 0.80 \quad (\text{Interactive prompt}) \\ 
-\text{BLOCK} & \text{if } \text{Score} \ge 0.80 \quad (\text{Hard intercept, exit 1}) 
+\text{ALLOW} & \text{if Risk} < 0.30 \quad (\text{Silent execution}) \\ 
+\text{WARN} & \text{if } 0.30 \le \text{Risk} < 0.55 \quad (\text{Diagnostic warning message}) \\ 
+\text{CONFIRM} & \text{if } 0.55 \le \text{Risk} < 0.80 \quad (\text{Interactive prompt}) \\ 
+\text{BLOCK} & \text{if Risk} \ge 0.80 \quad (\text{Hard intercept, exit 1}) 
 \end{cases}$$
 
 ---
@@ -135,11 +135,11 @@ Tested over 35 automated pytest unit tests and simulated shell execution streams
 
 | Metric | Measured Value | Industry Standard | Outcome |
 | :--- | :--- | :--- | :--- |
-| **Execution Latency** | **$< 1.5\text{ ms}$** | $< 50.0\text{ ms}$ | **$97.0\%$ Faster** |
-| **False Warning Reduction** | **$0\text{ Ghost Warnings}$** | $> 35.0\%$ False Positives | **Eliminated** |
-| **Memory Footprint** | **$< 15\text{ MB}$** | $> 250\text{ MB}$ (LLM/Daemon) | **Ultra Lightweight** |
-| **Deterministic Reliability** | **$100\%$ Local Math** | Non-deterministic | **Zero External API Calls** |
-| **Automated Test Coverage** | **35 / 35 Passed** | $100\%$ Green | **Flawless** |
+| **Execution Latency** | **< 1.5 ms** | < 50.0 ms | **97.0% Faster** |
+| **False Warning Reduction** | **0 Ghost Warnings** | > 35.0% False Positives | **Eliminated** |
+| **Memory Footprint** | **< 15 MB** | > 250 MB (LLM/Daemon) | **Ultra Lightweight** |
+| **Deterministic Reliability** | **100% Local Math** | Non-deterministic | **Zero External API Calls** |
+| **Automated Test Coverage** | **35 / 35 Passed** | 100% Green | **Flawless** |
 
 ---
 
@@ -147,12 +147,12 @@ Tested over 35 automated pytest unit tests and simulated shell execution streams
 
 | Feature / Attack Vector | Static Aliases (`rm -i`) | String / Regex Matching | LLM CLI Wrappers | Grounded Intent Guard |
 | :--- | :---: | :---: | :---: | :---: |
-| **State Grounding (Real Disk Bytes)** | ❌ No | ❌ No | ❌ No | ✅ **Yes (`os.walk` + `stat`)** |
-| **Git Dirty State Grounding** | ❌ No | ❌ No | ❌ No | ✅ **Yes (`git status --porcelain`)** |
-| **Raw Device Protection (`dd`)** | ❌ No | ⚠️ Partial | ⚠️ Hallucination-prone | ✅ **Yes (`blockdev --getsize64`)** |
-| **Drift / Context Awareness** | ❌ No | ❌ No | ⚠️ High Latency (>500ms) | ✅ **Yes ($< 1\text{ms}$ Zero-ML)** |
-| **Execution Overhead** | 0ms | 1ms | 800ms - 2500ms | **$< 2.0\text{ ms}$** |
-| **Offline & Air-Gapped Safe** | ✅ Yes | ✅ Yes | ❌ No (Requires API/GPU) | ✅ **100% Offline** |
+| **State Grounding (Real Disk Bytes)** | No | No | No | **Yes (`os.walk` + `stat`)** |
+| **Git Dirty State Grounding** | No | No | No | **Yes (`git status --porcelain`)** |
+| **Raw Device Protection (`dd`)** | No | Partial | Hallucination-prone | **Yes (`blockdev --getsize64`)** |
+| **Drift / Context Awareness** | No | No | High Latency (>500ms) | **Yes (< 1ms Zero-ML)** |
+| **Execution Overhead** | 0ms | 1ms | 800ms - 2500ms | **< 2.0 ms** |
+| **Offline & Air-Gapped Safe** | Yes | Yes | No (Requires API/GPU) | **100% Offline** |
 
 ---
 
@@ -160,7 +160,7 @@ Tested over 35 automated pytest unit tests and simulated shell execution streams
 
 ### 7.1 Try Live Web Sandbox
 Launch the full interactive terminal emulator in your browser without installing anything:  
-👉 **[https://gig-shell.vercel.app/](https://gig-shell.vercel.app/)**
+Link: **[https://gig-shell.vercel.app/](https://gig-shell.vercel.app/)**
 
 ### 7.2 Local Shell Installation
 
@@ -274,7 +274,7 @@ All engine hyperparameters are located at the top of `guard_engine.py`:
 | `SESSION_FILE` | `/tmp/guard_session.json` | Path to the rolling session history JSON file. |
 | `WINDOW_SIZE` | `12` | Bounded sliding window capacity for drift calculation. |
 | `WARN_THRESHOLD` | `0.30` | Risk cutoff for triggering a visual terminal warning. |
-| `CONFIRM_THRESHOLD` | `0.55` | Risk cutoff for prompting interactive `[y/N]` confirmation. |
+| `CONFIRM_THRESHOLD` | `0.55` | Risk cutoff for prompting interactive confirmation. |
 | `BLOCK_THRESHOLD` | `0.80` | Risk cutoff for hard blocking execution with exit code 1. |
 | `WEIGHT_IMPACT` | `0.45` | Weight multiplier for physical file and byte impact. |
 | `WEIGHT_DRIFT` | `0.25` | Weight multiplier for session trajectory divergence. |
@@ -286,13 +286,13 @@ All engine hyperparameters are located at the top of `guard_engine.py`:
 
 * **Bypassable by Design**: Shell-function wrapping is bypassed by an escaped executable name (`\rm`), absolute binary paths (`/bin/rm`), or non-interactive background cron jobs. This is an intended constraint of non-invasive userland shell wrapping.
 * **Process & Network Scope**: Focuses strictly on filesystem, raw block device, and git state. Package managers (`apt`, `npm`) and container orchestrators (`docker`, `kubectl`) are not intercepted.
-* **Very Large Directory Trees**: Deep trees with $>100,000$ nested nodes are walked synchronously; future versions will introduce bounded sampling.
+* **Very Large Directory Trees**: Deep trees with over 100,000 nested nodes are walked synchronously; future versions will introduce bounded sampling.
 
 ---
 
 ## 12. Authors & Engineering Team
 
-**Grounded Intent Guard** was designed and built by **Team BRO CODE**.
+Grounded Intent Guard was designed and built by **Team BRO CODE**.
 
 | Name | Role | Core Contributions |
 | :--- | :--- | :--- |
