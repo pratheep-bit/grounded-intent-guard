@@ -50,28 +50,28 @@ graph TD
     classDef action fill:#FEE2E2,stroke:#EF4444,stroke-width:2px;
     classDef storage fill:#F8FAFC,stroke:#64748B,stroke-width:2px;
 
-    Shell[Interactive Terminal CLI: bash / zsh]:::client -->|Command Ingress| GuardHook[guard.sh Wrapper & DEBUG Trap]:::gateway
+    Shell["Interactive Terminal CLI (bash / zsh)"]:::client -->|Command Ingress| GuardHook["guard.sh Wrapper and DEBUG Trap"]:::gateway
 
-    subgraph CoreEngine ["Deterministic Risk Engine (< 2.0ms Execution)"]
-        GuardHook --> Classifier[classify_command: Deterministic ARGV Tokenizer]:::gateway
+    subgraph CoreEngine ["Deterministic Risk Engine (sub-2ms Execution)"]
+        GuardHook --> Classifier["classify_command: Deterministic ARGV Tokenizer"]:::gateway
         
-        Classifier --> SensorA[A. VFS Physical Impact<br/>os.walk & stat byte aggregator]:::engine
-        Classifier --> SensorB[B. Git Porcelain State<br/>git status --porcelain dirty check]:::engine
-        Classifier --> SensorC[C. Raw Block Devices<br/>blockdev --getsize64 disk override]:::engine
-        Classifier --> SensorD[D. Trajectory Drift Engine<br/>WINDOW_SIZE=12 Session Telemetry]:::engine
-        Classifier --> SensorE[E. Recoverability Multi-Factor<br/>Upstream Remotes, Trash & Snapshots]:::engine
+        Classifier --> SensorA["A. VFS Physical Impact (os.walk and stat)"]:::engine
+        Classifier --> SensorB["B. Git Porcelain State (git status --porcelain)"]:::engine
+        Classifier --> SensorC["C. Raw Block Devices (blockdev --getsize64)"]:::engine
+        Classifier --> SensorD["D. Trajectory Drift Engine (WINDOW_SIZE=12)"]:::engine
+        Classifier --> SensorE["E. Recoverability Multi-Factor (Remotes, Trash, Snapshots)"]:::engine
 
-        SensorA & SensorB & SensorC & SensorD & SensorE --> Kernel[Composite Mathematical Kernel<br/>Score = 0.45*Impact + 0.25*Drift + 0.30*(1-Recov)]:::engine
+        SensorA & SensorB & SensorC & SensorD & SensorE --> Kernel["Composite Mathematical Kernel (Risk Score = 0.45*I + 0.25*D + 0.30*Irr)"]:::engine
     end
 
-    Kernel -->|Score < 0.30| ActionAllow[ALLOW: Silent Execution exit 0]:::gateway
-    Kernel -->|0.30 <= Score < 0.55| ActionWarn[WARN: Visual Notice & Audit Log]:::engine
-    Kernel -->|0.55 <= Score < 0.80| ActionConfirm[CONFIRM: Interactive Confirmation y/N]:::engine
-    Kernel -->|Score >= 0.80| ActionBlock[BLOCK: Hard Intercept exit 1]:::action
+    Kernel -->|Score < 0.30| ActionAllow["ALLOW: Silent Execution (exit 0)"]:::gateway
+    Kernel -->|0.30 <= Score < 0.55| ActionWarn["WARN: Visual Notice and Audit Log"]:::engine
+    Kernel -->|0.55 <= Score < 0.80| ActionConfirm["CONFIRM: Interactive Confirmation (y/N)"]:::engine
+    Kernel -->|Score >= 0.80| ActionBlock["BLOCK: Hard Intercept (exit 1)"]:::action
 
-    subgraph Telemetry ["Session & Audit Telemetry"]
-        Kernel --> SessionFile[/tmp/guard_session.json Deduplicated Window]:::storage
-        Kernel --> AuditLog[Real-Time Risk Gauge & Calibration UI]:::client
+    subgraph Telemetry ["Session and Audit Telemetry"]
+        Kernel --> SessionFile["/tmp/guard_session.json Deduplicated Window"]:::storage
+        Kernel --> AuditLog["Real-Time Risk Gauge and Calibration UI"]:::client
     end
 ```
 
@@ -126,7 +126,7 @@ $$\text{Score} = (0.45 \cdot I) + (0.25 \cdot D) + (0.30 \cdot (1.0 - R_{\text{r
 $$\text{Action} = \begin{cases} 
 \text{ALLOW} & \text{if } \text{Score} < 0.30 \quad (\text{Silent execution}) \\ 
 \text{WARN} & \text{if } 0.30 \le \text{Score} < 0.55 \quad (\text{Diagnostic warning message}) \\ 
-\text{CONFIRM} & \text{if } 0.55 \le \text{Score} < 0.80 \quad (\text{Interactive } [y/N] \text{ prompt}) \\ 
+\text{CONFIRM} & \text{if } 0.55 \le \text{Score} < 0.80 \quad (\text{Interactive prompt}) \\ 
 \text{BLOCK} & \text{if } \text{Score} \ge 0.80 \quad (\text{Hard intercept, exit 1}) 
 \end{cases}$$
 
